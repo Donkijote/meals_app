@@ -1,31 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:meals_app/widgets/meal_item.dart';
 
+import '../models/meal.dart';
+import '../widgets/meal_item.dart';
 import '../data/dummy-data.dart';
 
-class CategoryMealsScreen extends StatelessWidget {
+class CategoryMealsScreen extends StatefulWidget {
   static const routeName = '/category-meals';
-  /*final String categoryId;
-  final String categoryTitle;
 
-  CategoryMealsScreen(this.categoryId, this.categoryTitle);*/
+  @override
+  _CategoryMealsScreenState createState() => _CategoryMealsScreenState();
+}
+
+class _CategoryMealsScreenState extends State<CategoryMealsScreen> {
+  String title;
+  List<Meal> displayedMeals;
+  var _loadedInitData = false;
+
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    if (!_loadedInitData) {
+      final args =
+          ModalRoute.of(context).settings.arguments as Map<String, String>;
+      title = args['title'];
+      final id = args['id'];
+      displayedMeals = DUMMY_MEALS.where((meal) {
+        return meal.categories.contains(id);
+      }).toList();
+      _loadedInitData = true;
+    }
+    super.didChangeDependencies();
+  }
+
+  void _removeMeal(String mealId) {
+    setState(() {
+      displayedMeals.removeWhere((item) => item.id == mealId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final args =
-        ModalRoute.of(context).settings.arguments as Map<String, String>;
-    final title = args['title'];
-    final id = args['id'];
-    final categoryMeals = DUMMY_MEALS.where((meal) {
-      return meal.categories.contains(id);
-    }).toList();
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
       ),
       body: ListView.builder(
         itemBuilder: (_, index) {
-          final cat = categoryMeals[index];
+          final cat = displayedMeals[index];
           return MealItem(
             id: cat.id,
             title: cat.title,
@@ -33,9 +54,10 @@ class CategoryMealsScreen extends StatelessWidget {
             affordability: cat.affordability,
             imageUrl: cat.imageUrl,
             duration: cat.duration,
+            removeItem: _removeMeal,
           );
         },
-        itemCount: categoryMeals.length,
+        itemCount: displayedMeals.length,
       ),
     );
   }
